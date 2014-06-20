@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+	<TTConsoleNS:TTConsole
+		xmlns:mx="http://www.adobe.com/2006/mxml" 
+		xmlns:TTConsoleNS="console.*" 
+		width="700"
+		height="1">
+		<mx:TextArea 
+				id="consolescreen"
+				width="800"
+				height="1" text ="CardBoard"/>
+		<mx:TextInput id="consoleinput"
+				width="800"
+				height="1"
+				enter="this.parse()" text="" />
+		<mx:Script>
+	</mx:Script>
+	</TTConsoleNS:TTConsole>

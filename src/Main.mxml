@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+    xmlns:TTConsoleNS="*"
+	xmlns:engine="engine.*"
+    xmlns="*" 
+	paddingLeft="0"
+    paddingTop="0"
+    paddingBottom="0"
+    paddingRight="0"
+    width="100%" 
+    height="100%"
+	initialize = "init();"
+	frameRate="120"
+	>
+	 <mx:Style>
+        .dealerButtons { 
+            fontSize: 20;
+			cornerRadii: 0, 0, 0, 0;
+			borderThickness: 2;
+        }
+		.dealerTextInput {
+			fontSize: 15;
+		}
+		.sideConsole {
+			fontSize:17;
+			fontWeight:"normal";
+		}
+    </mx:Style>
+	
+	
+	<mx:Script>
+		
+		<![CDATA[
+		import engine.TT;
+		import engine.TTBettingPot;
+		import engine.TTComponentManager;
+		import flash.events.MouseEvent;
+		import flash.geom.Point;
+		import flash.geom.Vector3D;
+		import mx.core.FlexGlobals;
+		import engine.TTCardContainer;
+		import flash.geom.Matrix;
+		import mx.effects.Rotate;
+		
+		public var bp:TTBettingPot = null;
+		
+		public var rotator:Rotate;// = new Rotate(tt);
+		
+		/**
+		private function bettingPotCheck():void {
+			// unused
+			// this was a interface paradigm that was potentially confusing
+			// players were going to click a button that would move cards for you
+			// perhaps, someday there could be a configurable "piece mover" that
+			// players could manipulate... or program
+			if (bp) bp.runCommand("check");
+		}	
+		*/
+
+		private function printLog():void {
+			//commlog.htmlText = tt.comm.commLog;
+		}
+		
+		private function init():void {
+			trace("Card Board");
+			cbColor.selectedColor = Math.random() * 0xFFFFFF;
+			this.addEventListener(MouseEvent.MOUSE_MOVE, tt.onMouseMove);
+			this.addEventListener(MouseEvent.MOUSE_DOWN, tt.onMouseDown);
+			this.addEventListener(MouseEvent.MOUSE_UP, tt.onMouseUp);
+			
+			
+			this.addEventListener(KeyboardEvent.KEY_DOWN, tt.onKeyDown);
+			this.addEventListener(KeyboardEvent.KEY_UP, tt.onKeyUp);
+			
+			rotator = new Rotate(tt);
+			
+			cbGameRoom.text = tt.generateGameId();
+		}
+		
+
+		private function connectAsClient():void {
+			//trace(cbUserName.text);
+			tt.connectAsClient(cbUserName.text, cbPassword.text, cbServer.text, cbGameRoom.text, cbPlayerServerId.text);
+			cbConnect.enabled = false;
+			cbServer.enabled = false;
+			menu_dealer.enabled = true;
+		}
+		
+		private function startAsServer():void {
+			//trace(FlexGlobals.topLevelApplication.tt.generateGameId());
+			tt.startAsServer(cbUserName.text, cbPassword.text, cbServer.text);
+			cbConnect.enabled = false;
+			cbServer.enabled = false;
+			cbStartServer.enabled = false;
+			menu_dealer.enabled = true;
+		}
+		
+		private function menuRotate():void {
+			//if (!tt.comm.isConnectedToAGame) return;
+			tt.selectedCards.rotateCards();
+		}
+		
+		private function menuFlip():void {
+			//if (!tt.comm.isConnectedToAGame) return;
+			tt.selectedCards.flipCards();
+		}
+		
+		private function menuShuffle():void {
+			//if (!tt.comm.isConnectedToAGame) return;
+			tt.selectedCards.shuffle();
+			tt.selectedCards.stackSelected(tt.localToGlobal(new Point(650, 100)), 1, 1, 2, true, TTCardContainer.FLIP_DOWN);
+		}
+		
+		private var componentmanager:TTComponentManager;
+		
+		private function menuDealer():void {
+			//if (!tt.comm.isConnectedToAGame) return;
+			menu_dealer.label = "Loaded.";
+			menu_dealer.enabled = false;
+			componentmanager = new TTComponentManager();
+			if (!tt.game_components[tt.myself_id]) {
+				tt.game_components[tt.myself_id] = componentmanager;
+				//dealer.init() --> push everything out of its way
+				TTComponentManager.startComponent("BettingPot", 9001, 105, 105, tt.myself_id); 
+			}
+		}
+		
+		private function rotateAll(test:Boolean = true):void { 
+			//menu_rotate_all.enabled = false;
+			if (rotator.isPlaying) return;
+			rotator.angleFrom = tt.rotation;
+			rotator.angleTo = tt.rotation + 90;
+			rotator.originX = tt.width / 2;
+			rotator.originY = tt.height / 2;
+			rotator.suspendBackgroundProcessing = true;
+
+			rotator.play();
+			
+			//menu_rotate_all.enabled = true;
+		}
+		
+		]]>
+	</mx:Script>
+	<mx:HBox id="connectBox" >
+			<mx:Text text="Color" />
+			<mx:ColorPicker id="cbColor" /> <!-- http://help.adobe.com/en_US/flex/using/WS2db454920e96a9e51e63e3d11c0bf63b33-7fa7.html -->
+			
+			<mx:Text text="UserId" />
+			<mx:TextInput id="cbUserName" width="85" text="Username" />
+			
+			<mx:Text text="Password" />
+			<mx:TextInput width="85" displayAsPassword="true" id="cbPassword" text="" />
+			<mx:Text text="Server" />
+			<mx:TextInput width="80" id="cbServer" text = "" /> 
+			<mx:Text text="Gameroom" />
+			<mx:TextInput id="cbGameRoom" width="85" text="RoomName" /> 
+			<mx:Text text="Server UserId" />
+			<mx:TextInput id="cbPlayerServerId" width="50" text="Username" />
+			<mx:Button id="cbConnect" label="Connect to Server" click="connectAsClient()" />
+			<mx:Button id="cbStartServer" label="Start Server" click="startAsServer()" />
+	</mx:HBox>
+	<mx:HBox verticalAlign="bottom">
+		<mx:VBox id="ttvBox">
+			<mx:Box id="ttBox" autoLayout="false" width="820" height="820" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<engine:TT id="tt" width="800" height = "800">
+				</engine:TT>
+			</mx:Box>
+		</mx:VBox>
+		<mx:VBox id="dealerBox" >
+			<mx:TextArea 
+				id="sideconsole"
+				width="300" height="750" styleName="sideConsole" valueCommit="sideconsole.verticalScrollPosition = sideconsole.maxVerticalScrollPosition">
+					<mx:htmlText>
+						<![CDATA[<font size="12"><b>Server Instructions:</b></font>
+<font size="10">1) Type a <u>UserId</u> (no Password or Server necessary for demo)
+2) Choose a color for your cursor
+3) Click <b>Start Server</b>
+
+<font size="12"><b>Client Instructions:</b></font>
+<font size="10">0) Must be on the same Local Network. This demo only supports connections over the local area network.
+1) Type a <u>UserId</u> (no Password or Server necessary for demo)
+2) Choose a color for your cursor
+3) Type in the same <b>Gameroom</b> as the <u>Server</u>
+4) Type in the <b>UserId</b> of the <u>Server</u>
+5) Click <u>Connect to Server</u>  
+
+<font size="12"><b>To Play</b></font><font size="10">
+1) Double-click to flip a card. Also, press "F" or use the menu to flip all cards up or down.
+2) Press "R" to rotate a card. (This is an incomplete feature: edge-detection behaves as if the card was not rotated).
+3) Right - click for menu. 
+ a) It matters where you right - mouse clicked. That is where cards will go if you shuffle or view an area.
+ b) The order of cards by X, then Y position is preserved when spreading/stacking cards via the menu.
+4) <u>Viewing a private area:</u>
+Right click on a brown area and click <b>Toggle View</b> to see cards in that area. 
+</font>
+]]>
+					</mx:htmlText>
+			</mx:TextArea>
+			
+		</mx:VBox>
+		<!--
+		<mx:VBox>
+			<mx:TextArea id="commlog"></mx:TextArea>
+			<mx:Button id="printlog" label="x" click="printLog()"></mx:Button>
+		</mx:VBox>
+		-->
+	</mx:HBox>
+	<mx:HBox id="playmenu">
+		<!--mx:Button id="menu_flip" label="Flip" click="menuFlip()" /-->
+		<!--mx:Button id="menu_shuffle" label="Shuffle" click="menuShuffle()" /--> 
+		<mx:Button id="menu_dealer" label="Activate Bet Tracker and Community Zone" click="menuDealer()" enabled="false" />
+		<mx:Button id="menu_rotate_all" label="Rotate Board" click="rotateAll()"/>
+	</mx:HBox>
+
+	<TTConsoleNS:TTUIComponent autoLayout = "true" id="ttcomponent" visible="false" />
+	<mx:Label id="statusbar" />
+	</mx:Application>
+	
