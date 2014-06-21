@@ -28,27 +28,28 @@ I expect active development to move along at a leisurely pace. Here are my prior
 
 Instructions
 ----
+You can try Card Board immediately. Download the swf file from the bin directory and open it with your favorite Flash-enable web-browser. Click on **Start Server** if you just want to see how the interface works.
 **Client-as-Server Instructions:**
-1. Type a UserId (no Password or Server necessary for LAN play)
-2. Choose a color for your cursor
-3. Click Start Server
+* Type a UserId (no Password or Server necessary for LAN play)
+* Choose a color for your cursor
+* Click Start Server
 
 **Client Instructions:**
-0. Must be on the same Local Network. This release only supports connections over the local area network.
-1. Type a UserId (no Password or Server necessary for LAN play)
-2. Choose a color for your cursor
-3. Type in the same Gameroom as the Server
-4. Type in the UserId of the Server
-5. Click Connect to Server  
+* Must be on the same Local Network. This release only supports connections over the local area network.
+* Type a UserId (no Password or Server necessary for LAN play)
+* Choose a color for your cursor
+* Type in the same Gameroom as the Server
+* Type in the UserId of the Server
+* Click Connect to Server  
 
 **To Play**
-1. Double-click to flip a card. Also, press "F" or use the menu to flip all cards up or down.
-2. Press "R" to rotate a card. (This is an incomplete feature: edge-detection behaves as if the card was not rotated).
-3. Right - click for menu. 
+* Double-click to flip a card. Also, press "F" or use the menu to flip all cards up or down.
+* Press "R" to rotate a card. (This is an incomplete feature: edge-detection behaves as if the card was not rotated).
+* Right - click for menu. 
  * It matters where you right - mouse clicked. That is where cards will go if you shuffle or view an area.
  * The order of cards by X, then Y position is preserved when spreading/stacking cards via the menu.
-4. Viewing a private area:
-Right click on a brown area and click Toggle View to see cards in that area. 
+* Viewing a private area:
+ * Right click on a brown area and click Toggle View to see cards in that area. 
 
 License
 ----
