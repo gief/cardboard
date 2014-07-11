@@ -3,6 +3,10 @@ Card Board
 
 Card Board is a general game system for playing card games over a network. 
 
+Demo
+----
+Try it out on [this demo page] [demo] which also includes the dev blog and feedback pages.
+
 Features
 ----
   - LAN play via RTMFP (following Tom Krcha's [post] [2])
@@ -56,7 +60,7 @@ License
 
 BSD 3-Clause License
 
-
+[demo]:http://card-board.weebly.com
 [1]:https://digital.lib.washington.edu/researchworks/handle/1773/25132
 [PokerFace]:https://github.com/houen/PokerFace
 [2]:http://tomkrcha.com/?p=1803
