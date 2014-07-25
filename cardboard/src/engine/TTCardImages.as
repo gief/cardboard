@@ -1,10 +1,18 @@
 ﻿package engine 
 {
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.system.LoaderContext;
 	import mx.core.FlexTextField;
 	
+	import flash.net.URLRequest;
+	import flash.display.Loader;
+	
 	import flash.geom.Matrix;
+	
 	/**
 	 * Import card graphics from a library swf file
 	 * @author Gifford Cheung
@@ -12,10 +20,8 @@
 	public class TTCardImages
 	{
 		
-		//[Embed(source = "CardLibrary.swf", )]
-		//[Bindable]
-		//public var CardLibrary:Class; // TODO: make this work dynamically 
-		//http://livedocs.adobe.com/flex/3/html/help.html?content=embed_3.html
+		// Cache of loaded images
+		public static var LOADED_CARDS:Array = new Array();
 		
 		[Embed(source='../cards/library.swf', symbol='CARD_AD')]
 		[Bindable]
@@ -239,17 +245,49 @@
 		 * @param	offy
 		 */
 		public static function drawCard(c:String, spr:Sprite, w: int, h: int, offx:int = 0, offy:int = 0):void {
+			var bd:BitmapData = new BitmapData(w, h, false, 0xFFFFFF);
+			var transform:Matrix = new Matrix();
 			if (TTCardImages[c]) {
-				var bd:BitmapData = new BitmapData(w, h, true, 0x00000000);
-				var transform:Matrix = new Matrix();
 				transform.scale(.5, .5);
 				bd.draw(new TTCardImages[c](), transform);
 				transform = new Matrix();
 				transform.translate(-offx, -offy);
 				spr.graphics.beginBitmapFill(bd, transform, true);
 				spr.graphics.drawRect(0+offx, 0+offy, w - 1, h - 1);
-			} else 
-				trace("Error, no such card in image library: "+c);
+			} else if (LOADED_CARDS[c]) {
+				transform = new Matrix();
+				transform.translate( -offx, -offy);
+				spr.graphics.lineStyle(0, 0, 0);
+				spr.graphics.beginBitmapFill(LOADED_CARDS[c].bitmapData, transform, true);
+				spr.graphics.drawRect(0+offx, 0+offy, w - 1, h - 1);
+			} else if (c.slice(5, 10) == "LOAD_") {
+				// Load then place Bitmap into LOADED_CARDS[c]
+				var url:URLRequest = new URLRequest(c.slice(10));
+				var imgLoader:Loader = new Loader();
+				var loaderContext:LoaderContext = new LoaderContext(true);
+				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaded);
+				imgLoader.load(url, loaderContext);
+				
+				// Temporary blank
+				transform = new Matrix();
+				transform.translate(-offx, -offy);
+				spr.graphics.beginBitmapFill(bd, transform, true);
+				spr.graphics.drawRect(0 + offx, 0 + offy, w - 1, h - 1);
+				
+			} else {
+				trace("Error, unable to render: " + c);
+				transform.scale(.5, .5);
+				transform = new Matrix();
+				transform.translate(-offx, -offy);
+				spr.graphics.beginBitmapFill(bd, transform, true);
+				spr.graphics.drawRect(0+offx, 0+offy, w - 1, h - 1);
+			}
+		}
+		
+		public static function loaded(e:Event):void {
+			//trace("loadevent complete");			
+			LOADED_CARDS["CARD_LOAD_" + e.target.url] = e.target.content;
+			e.target.removeEventListener(Event.COMPLETE, loaded);
 		}
 	}
 }

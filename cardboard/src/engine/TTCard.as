@@ -18,7 +18,7 @@
 	
 
 	/**
-	 * A card element. This has been used to represent playing cards, player chips (e.g. red dealer chip), and chips with monetary value.
+	 * A card element. This has been used to represent playing cards, player token (e.g. red dealer chip), and chips with monetary value.
 	 * 
 	 * @author Gifford Cheung
 	 */
@@ -32,10 +32,10 @@
 		public var relativeX:int; // for dragging multiple cards
 		public var relativeY:int;
 		
-		public var w:int = 50;
-		public var halfw:int = 25;
-		public var h:int = 70;
-		public var halfh:int = 35;
+		public var w:int;// = 50;
+		public var halfw:int;// = 25;
+		public var h:int;// = 70;
+		public var halfh:int;// = 35;
 		public var origin:Point;
 
 		public var card_id:int;
@@ -67,10 +67,14 @@
 		
 		public var lights:Shape;
 		
-		public function TTCard( _front:String = "AS",	_back:String = "", card_id:int = 0, dragging_face:Boolean = false, isChip:Boolean = false )
+		public function TTCard( _front:String = "AS",	_back:String = "", card_id:int = 0, dragging_face:Boolean = false, isChip:Boolean = false, w:int = 50, h:int = 70 )
 		{	
 			this.isChip = isChip;
 			this.isDraggingFace = dragging_face;
+			this.w = w;
+			this.halfw = Math.round(w / 2);
+			this.h = h;
+			this.halfh = Math.round(h / 2);
 			
 			if (isDraggingFace) {
 				this.buttonMode = true;
@@ -299,10 +303,8 @@
 		private function onDoubleClick(evt:MouseEvent):void {
 			tt.selectedCards.readyToDrag = false;
 			tt.selectedCards.isDragging = false;
-			// online
 			this.flip();
 			this.sendFlip();
-			
 		}
 		
 		/**
@@ -772,31 +774,19 @@
 		    }
 		}
 		
-		/**
-		 * Draw a rectangle around the graphics
-		 */
-		public function lightMeUp():void {
-		    if (this.lights == null)
-		    {
-		        // draws a rectangle around the selected shape
-		        this.lights = new Shape();
-		        this.lights.graphics.lineStyle(2.0, 0x00FFFF, 2.0);
-			    this.lights.graphics.drawRect(0, 0, this.w-1, this.h-1);
-			   	lights.x = 0 - halfw;
-				lights.y = 0 - halfh;
-				this.addChildAt(this.lights, this.numChildren);
-		    }
-		    else
-		    {
-				this.lights.visible = true;
-			}
-		}
 		
 		/**
-		 * hide the lightmeup rectangle
+		 * Instruct everyone to load new cards into the game.
+		 * @param	json_card_array - Array - a json array comprised of card objects
 		 */
-		public function lightMeDown():void {
-			if (this.lights) this.lights.visible = false;
+		public static function sendLoadCardsMessage(cards:Array):void {
+			var message:Object = new Object();
+			message.person_id = FlexGlobals.topLevelApplication.tt.myself_id;
+			message.action = "LOADCARDS";
+			message.cards = cards;
+			var now:Date = new Date();
+			message.timestamp = "" + new Date().valueOf();
+			FlexGlobals.topLevelApplication.tt.comm.send(message);
 		}
 		
 		/**

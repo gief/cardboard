@@ -109,8 +109,9 @@
 		 */
 		public function send(message:Object):void {
 			var message:Object = message;
-			// NO MORE MESSAGE NUMBER CHECKING
 			
+			// TODO 
+			// NO MORE MESSAGE NUMBER CHECKING
 			message.my_message_number = this.my_message_number;
 			this.my_message_number += 1;
 			
@@ -317,8 +318,15 @@
 								}
 							}
 							break;
-						case "RESETGAME":
-							// reset the game. TODO
+						case "DELETEALLCARDS":
+							if (!myself) {
+								tt.deleteAllCards();
+							}
+							break;
+						case "LOADCARDS":
+							if (!myself) {
+								tt.loadCards(JSON.stringify(m.cards));
+							}
 							break;
 						case "PING":
 							tt.visual_effect_layer.queueAnimatedPing(m.pinglabel, m.x, m.y, 1.0);

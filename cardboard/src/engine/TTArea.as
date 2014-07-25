@@ -103,7 +103,7 @@
 		}
 		
 		/**
-		 * Make a public announcment about a new owner of an area.
+		 * Make a public announcement about a new owner of an area.
 		 * @param	owner_id
 		 */
 		public function sendNewAreaOwner(owner_id:String):void {
@@ -200,9 +200,24 @@
 		
 		public function removeCard(c:TTCard):void {
 			delete this.cards[c.card_id];
-			//var index:int = this.cards.indexOf(c);
-			//if (index != -1 ) this.cards.splice(index, 1);
+			removeCardFromAllSprites(c);
 		}
+		
+		public function removeCardFromAllSprites(c:TTCard): void {
+			if (this.upper_layer.contains(c)) {
+				this.upper_layer.getChildAt(this.upper_layer.getChildIndex(c));
+				this.upper_layer.removeChild(c);
+			}
+			if (this.lower_layer.contains(c)) {
+				this.lower_layer.getChildAt(this.lower_layer.getChildIndex(c));
+				this.lower_layer.removeChild(c);
+			}
+			if (this.middle_layer.contains(c)) {
+				this.middle_layer.getChildAt(this.middle_layer.getChildIndex(c));
+				this.middle_layer.removeChild(c);
+			}
+		}
+		
 		
 		public function bringToFront():void {
 			if (this.parent.getChildIndex(this) != this.parent.numChildren - 1) { // this condition avoids unnecessarily repeating the addChild command

@@ -3,6 +3,7 @@
 
 	import communicator.TTComm;
 	import engine.*;
+	import flash.system.LoaderContext;
 	import mx.containers.Canvas;
 	import mx.containers.Panel;
 	import mx.controls.Button;
@@ -13,6 +14,10 @@
 	import mx.core.Application;
 	
 	import mx.core.FlexGlobals;
+	
+	import flash.net.URLRequest;
+	import flash.display.Loader;
+	import flash.events.Event;
 	
 	import flash.utils.*;
 	
@@ -31,9 +36,7 @@
 	
 		public function TTConsole():void 
 		{
-			super();
-			comm = new TTComm();
-			FlexGlobals.topLevelApplication.tt.comm = comm;
+			super();			
 		}
 		
 		
@@ -45,238 +48,147 @@
 			if (this.hasOwnProperty(functionName) && functionName != 'parse') {
 				try {
 					this[functionName].apply(this, functionArgs); //arg1 (this) will change later to apply to the right object as in the game
+				} catch (e:SecurityError) {
+					consolescreen.text += "\n Security Error " + e.message + "\n";
 				} catch (e:Error) { //catch (e:ArgumentError) {
-					consolescreen.text += e.message + "\n";
+					consolescreen.text += e.message + "\n";//  + e.getStackTrace + "\n";
 				} 
 			}
 			consoleinput.text = "";
 		}
 		
 		public function commands():void {
+			/*
+			 * TODO: this needs to hide irrelevant commands
 			var classInfo:XML = describeType(this);
 			for each (var m:XML in classInfo..method) {
                 consolescreen.text += "Method " + m.@name + "():" + m.@returnType + "\n";
             }
+			*/
 		}
-		public function dropAreasAndCards():void {
-			FlexGlobals.topLevelApplication.tt.dropAreasAndCards();
-		}
+				
 		public function snapshot():void {
 			var x:Object = FlexGlobals.topLevelApplication.tt.getSnapshot(); //test
 			consolescreen.text += "\n" + JSON.stringify(x);
-			/*
-			consolescreen.text += "\n" + x["Game"];
-			consolescreen.text += "\n" + x["Areas"];
-			consolescreen.text += "\n" + x["Cards"];
-			*/
 		}
 		
 		public function loadGame():void {
-			consolescreen.text += "\nLoading Game, next loadAreas and loadCards, then initXMPP \n";
+			consolescreen.text += "\nLoading Game: Note: this command is not transmitted over the network. \n";
 			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
 			tt.loadOrReloadGame(arguments[0]);
 		}
 		
 		public function loadAreas():void {
+			consolescreen.text += "\nLoading Area: Note: this command is not transmitted over the network. \n";
 			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
 			tt.loadAreas(arguments[0]);			
 		}
 		
-		public function loadCards():void {
+		public function loadCardArray():void {
+			consolescreen.text += "\nLoading Array of Cards: Note: this command is not transmitted over the network. \n";
 			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
 			tt.loadCards(arguments[0]);
 		}
 		
-		/*
-		public function initXMPP():void {
-			comm.initXMPPConnection();
-		}
-		*/
-		
-		public function back():void {
-			this.parent.addChildAt(this, 0);
-		}
-		
-		public function front():void {
-			this.parent.addChildAt(this, this.parent.numChildren);
-		}
-
-		public function r():void {
+		public function deleteAllCards():void {
 			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
-			tt.rotation += 90;
-			tt.recenterAfterRotation();
+			tt.deleteAllCards();
+			tt.sendDeleteAllCardsMessage();
 		}
 		
-		public function p():void {
-			consolescreen.text += "P1ING\n";
-			for (var i:String in FlexGlobals.topLevelApplication.parameters) {
-                 consolescreen.text += i + ":" + FlexGlobals.topLevelApplication.parameters[i] + "\n";
-            }
-		}
-		/*
-		public function pload():void {
-			var g:String,
-				a: String,
-				c:String,
-				p:String;
-			var me: Object;
-			for (var i: String in FlexGlobals.topLevelApplication.parameters) {
-				switch (i) {
-					case "gs":
-						g = FlexGlobals.topLevelApplication.parameters[i];
-						break;
-					case "as":
-						a = FlexGlobals.topLevelApplication.parameters[i];
-						break;
-					case "cs":
-						c = FlexGlobals.topLevelApplication.parameters[i];
-						break;
-					case "ps":
-						p = FlexGlobals.topLevelApplication.parameters[i];
-						break;
-					case "mes":
-						me = JSON.parse(FlexGlobals.topLevelApplication.parameters[i]);
-						break;
-				};
+		public function loadCards():void {
+			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
+			if (!tt.game_id) {
+				// game not yet started
+				consolescreen.text += "\nNo game yet, cannot load cards\n";
+				return; 
 			}
-			arguments[0] = me["self"];
-//			arguments[0] = "t1";
-			this["setPlayer"].apply(this, arguments);
-			//setPlayer();
-			arguments[0] = p;
-			this["setPlayers"].apply(this, arguments);
-			arguments[0] = "1234!@#$";
-			this["setPassword"].apply(this, arguments);
-			//setPassword();
-			arguments[0] = "127.0.0.1";
-			this["setServer"].apply(this, arguments);
-			//setServer();
-			arguments[0] = "ttroom";
-			this["setRoom"].apply(this, arguments);
-			//setRoom();
-			arguments[0] = g;
-			this["loadGame"].apply(this, arguments);
-			//loadGame();
-			arguments[0] = a;
-			this["loadAreas"].apply(this, arguments);
-			//loadAreas();
-			arguments[0] = c;
-			this["loadCards"].apply(this, arguments);
-				
-			xInit();
-
-		}
-		*/
-		public function rr():void {
-			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
-			tt.areas[0].cards[0].rotation += 45;
-		}
-		
-		public function dateTest():void {
-			var now:Date = new Date();
-			consolescreen.text += Math.floor((new Date()).valueOf()/1000);
-		}
-		
-		public function setPlayer(): void {
-			var tt:TT = FlexGlobals.topLevelApplication.tt;
-			tt.myself_id = arguments[0];
-		}
-		
-		public function setPassword(): void {
-			FlexGlobals.topLevelApplication.tt.myself_password = arguments[0];
-			consolescreen.text += "passwd set to: " + arguments[0];
-		}
-		
-		public function setServer(): void {
-			FlexGlobals.topLevelApplication.tt.server = arguments[0];
-			consolescreen.text += "server set to: " + arguments[0];
-		} 
-		
-		public function setRoom(): void {
-			FlexGlobals.topLevelApplication.tt.room = arguments[0];
-			consolescreen.text += "room set to: " + arguments[0];
-		}
-		
-		public function setArea(): void {
-		}
-		
-		public function preset1(): void {
-			arguments[0] = "t1";
-			this["setPlayer"].apply(this, arguments);
-			//setPlayer();
-			arguments[0] = TTGamePresets.p1;
-			this["setPlayers"].apply(this, arguments);
-			arguments[0] = "1234!@#$";
-			this["setPassword"].apply(this, arguments);
-			//setPassword();
-			arguments[0] = "127.0.0.1";
-			//arguments[0] = "24.16.145.137";
-			this["setServer"].apply(this, arguments);
-			//setServer();
-			arguments[0] = "ttroom";
-			this["setRoom"].apply(this, arguments);
-			//setRoom();
-			arguments[0] = TTGamePresets.g1;
-			this["loadGame"].apply(this, arguments);
-			//loadGame();
-			arguments[0] = TTGamePresets.a1;
-			this["loadAreas"].apply(this, arguments);
-			//loadAreas();
-			arguments[0] = TTGamePresets.c1;
-			this["loadCards"].apply(this, arguments);
-			//loadCards();
-			//connect.
-			consolescreen.text += "Preset 1 set: press connect.";
 			
+			//expecting a series of values separated by comma
+			var input:String = arguments[0];
+			var cards:Array = input.split(",");
+			for each (var card:String in cards) {
+				this["loadCard"].apply(this, [card]); 
+			}
 		}
-		public function preset2():void {
-			arguments[0] = "t2";
-			this["setPlayer"].apply(this, arguments);
-			//setPlayer();
-			arguments[0] = TTGamePresets.p1;
-			this["setPlayers"].apply(this, arguments);
-			arguments[0] = "1234!@#$";
-			this["setPassword"].apply(this, arguments);
-			//setPassword();
-			arguments[0] = "127.0.0.1";
-			this["setServer"].apply(this, arguments);
-			//setServer();
-			arguments[0] = "ttroom";
-			this["setRoom"].apply(this, arguments);
-			//setRoom();
-			arguments[0] = TTGamePresets.g1;
-			this["loadGame"].apply(this, arguments);
-			//loadGame();
-			arguments[0] = TTGamePresets.a1;
-			this["loadAreas"].apply(this, arguments);
-			//loadAreas();
-			arguments[0] = TTGamePresets.c1;
-			this["loadCards"].apply(this, arguments);
+		
+		public function loadCard():void {
+			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
+			if (!tt.game_id) {
+				// game not yet started
+				consolescreen.text += "\nNo game yet, cannot load cards\n";
+				return; 
+			}
+			if (arguments[0].substring(0, 4) == "http") {
+				consolescreen.text += "\nLoading:" +arguments[0]+"\n";
+				var url:URLRequest = new URLRequest(arguments[0]);
+				var loaderContext:LoaderContext = new LoaderContext(true);
+				var imgLoader:Loader = new Loader();
+				imgLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, loadCardCallback);
+				imgLoader.load(url, loaderContext);
+			} else {
+				var cards:Array = new Array();
+				// area_id
+				var card:Object = new Object();
+				card.area_id = 9001; // This can be made automagically another day
+				card.card_id = tt.generateCardId();
+				card.back = "0";
+				card.chipColor = 0;
+				card.data = "nothing";
+				card.face_up = true;
+				//front
+				card.front = arguments[0];
+				//h
+				card.h = 70;
+				//halfh
+				card.halfh = 35;
+				//halfw
+				card.halfw = 25;
+				card.isChip = false;
+				card.r = 0;
+				//w
+				card.w = 50;
+				card.x = 225;
+				card.y = 225;
+				
+				cards.push(card);
+				tt.loadCards(JSON.stringify(cards));
+				TTCard.sendLoadCardsMessage(cards);
+			}
 		}
-
-		public function preset3():void {
-			arguments[0] = "t3";
-			this["setPlayer"].apply(this, arguments);
-			//setPlayer();
-			arguments[0] = TTGamePresets.p1;
-			this["setPlayers"].apply(this, arguments);
-			arguments[0] = "1234!@#$";
-			this["setPassword"].apply(this, arguments);
-			//setPassword();
-			arguments[0] = "127.0.0.1";
-			this["setServer"].apply(this, arguments);
-			//setServer();
-			arguments[0] = "ttroom";
-			this["setRoom"].apply(this, arguments);
-			//setRoom();
-			arguments[0] = TTGamePresets.g1;
-			this["loadGame"].apply(this, arguments);
-			//loadGame();
-			arguments[0] = TTGamePresets.a1;
-			this["loadAreas"].apply(this, arguments);
-			//loadAreas();
-			arguments[0] = TTGamePresets.c1;
-			this["loadCards"].apply(this, arguments);
+		
+		public function loadCardCallback(e:Event):void {
+			consolescreen.text += "Loading:" +e.target.url+": Load Complete\n";
+			var tt:TT = mx.core.FlexGlobals.topLevelApplication.tt;
+			TTCardImages.loaded(e);
+			var cards:Array = new Array();
+			// area_id
+			var card:Object = new Object();
+			card.area_id = 9001; // This can be made automagically another day
+			card.card_id = tt.generateCardId();
+			card.back = "0";
+			card.chipColor = 0;
+			card.data = "nothing";
+			card.face_up = true;
+			//front
+			card.front = "LOAD_" + e.target.url;
+			//h
+			card.h = e.target.content.height;
+			//halfh
+			card.halfh = Math.round(e.target.content.height / 2);
+			//halfw
+			card.halfw = Math.round(e.target.content.width / 2);
+			card.isChip = false;
+			card.r = 0;
+			//w
+			card.w = e.target.content.width;
+			card.x = 225;
+			card.y = 225;
+			
+			
+			cards.push(card);
+			tt.loadCards(JSON.stringify(cards));
+			TTCard.sendLoadCardsMessage(cards);
 		}
 		
 		public function help(): void {
@@ -290,19 +202,6 @@
 			*/
 		}
 		
-		public function o(): void {
-			try {
-				var a:Array = comm.outgoing_log;
-				consolescreen.text += "Outgoing log size: " + a.length + "\n";
-				for each (var m:Object in a) {
-					consolescreen.text += m.my_message_number + ": " + m.action + " " + m.card_id + "\n";
-				}
-			} catch (e:Error) {
-				consolescreen.text += e.message + "\n" + e.getStackTrace + "\n";
-			}
-		}
-		
-
 		public function hide():void {
 			mx.core.FlexGlobals.topLevelApplication.ttcomponent.visible = false;
 		}

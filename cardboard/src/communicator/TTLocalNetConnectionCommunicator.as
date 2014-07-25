@@ -59,7 +59,7 @@ package communicator
 		}
 		
 		private function netHandler(event:NetStatusEvent):void {
-			trace("netHandler triggered.");
+			//trace("netHandler triggered.");
 			switch(event.info.code) {
 				// connect success
 				case "NetConnection.Connect.Success":

@@ -2,15 +2,31 @@
 	<TTConsoleNS:TTConsole
 		xmlns:mx="http://www.adobe.com/2006/mxml" 
 		xmlns:TTConsoleNS="console.*" 
-		width="700"
-		height="1">
+		width="820"
+		>
 		<mx:TextArea 
 				id="consolescreen"
 				width="800"
-				height="1" text ="CardBoard"/>
+				height="650">
+				<mx:htmlText><![CDATA[
+<i>CardBoard console. Press ~ to show / hide</i>
+
+Commands:
+<b>deleteAllCards</b> - Deletes all cards and chips from the game board.
+
+<b>loadCard</b> <i>card</i> - Adds a card to the game board.
+	<i>card</i> - This can be either a URL for a JPG, PNG, or GIF or it can be a string that describes a standard card (e.g. AH, KD, TS, JOKER).
+	e.g. loadCard 4S
+	e.g. loadCard http://i.imgur.com/UEvxSgW.jpg
+	URL loading is restricted by the cross domain policies of flash (see: http://kb2.adobe.com/cps / 142 / tn_14213.html ) 
+		
+<b>loadCards</b> <i>card1,card2,card3...</i> - Same as <b>loadCard</b> except that it accepts multiple cards as arguments separated by commas. No whitespace allowed.
+	e.g. loadCards 4S, 5H, TD, http://i.imgur.com/UEvxSgW.jpg
+	e.g. Pinochle deck: loadCards 9D,TC,JH,QS,KD,AC,9H,TS,JD,QC,KH,AS,9D,TC,JH,QS,KD,AC,9H,TS,JD,QC,KH,AS,9D,TC,JH,QS,KD,AC,9H,TS,JD,QC,KH,AS,9D,TC,JH,QS,KD,AC,9H,TS,JD,QC,KH,AS
+				]]></mx:htmlText></mx:TextArea> 
 		<mx:TextInput id="consoleinput"
 				width="800"
-				height="1"
+				height="50"
 				enter="this.parse()" text="" />
 		<mx:Script>
 	</mx:Script>

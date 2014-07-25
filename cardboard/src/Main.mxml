@@ -60,6 +60,9 @@
 		private function printLog():void {
 			//commlog.htmlText = tt.comm.commLog;
 		}
+		public function onKeyUp(evt:KeyboardEvent):void {
+			tt.onKeyUp(evt);
+		}
 		
 		private function init():void {
 			trace("Card Board");
@@ -135,12 +138,17 @@
 			rotator.suspendBackgroundProcessing = true;
 
 			rotator.play();
-			
-			//menu_rotate_all.enabled = true;
+		}
+		
+		private function toggleConsole():void {
+			if (tt) {
+				tt.toggleConsole();
+			}
 		}
 		
 		]]>
 	</mx:Script>
+	
 	<mx:HBox id="connectBox" >
 			<mx:Text text="Color" />
 			<mx:ColorPicker id="cbColor" /> <!-- http://help.adobe.com/en_US/flex/using/WS2db454920e96a9e51e63e3d11c0bf63b33-7fa7.html -->
@@ -159,60 +167,61 @@
 			<mx:Button id="cbConnect" label="Connect to Server" click="connectAsClient()" />
 			<mx:Button id="cbStartServer" label="Start Server" click="startAsServer()" />
 	</mx:HBox>
-	<mx:HBox verticalAlign="bottom">
-		<mx:VBox id="ttvBox">
-			<mx:Box id="ttBox" autoLayout="false" width="820" height="820" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-				<engine:TT id="tt" width="800" height = "800">
-				</engine:TT>
-			</mx:Box>
-		</mx:VBox>
-		<mx:VBox id="dealerBox" >
-			<mx:TextArea 
-				id="sideconsole"
-				width="300" height="750" styleName="sideConsole" valueCommit="sideconsole.verticalScrollPosition = sideconsole.maxVerticalScrollPosition">
-					<mx:htmlText>
-						<![CDATA[<font size="12"><b>Server Instructions:</b></font>
-<font size="10">1) Type a <u>UserId</u> (no Password or Server necessary for demo)
-2) Choose a color for your cursor
-3) Click <b>Start Server</b>
-
-<font size="12"><b>Client Instructions:</b></font>
-<font size="10">0) Must be on the same Local Network. This demo only supports connections over the local area network.
-1) Type a <u>UserId</u> (no Password or Server necessary for demo)
-2) Choose a color for your cursor
-3) Type in the same <b>Gameroom</b> as the <u>Server</u>
-4) Type in the <b>UserId</b> of the <u>Server</u>
-5) Click <u>Connect to Server</u>  
-
-<font size="12"><b>To Play</b></font><font size="10">
-1) Double-click to flip a card. Also, press "F" or use the menu to flip all cards up or down.
-2) Press "R" to rotate a card. (This is an incomplete feature: edge-detection behaves as if the card was not rotated).
-3) Right - click for menu. 
- a) It matters where you right - mouse clicked. That is where cards will go if you shuffle or view an area.
- b) The order of cards by X, then Y position is preserved when spreading/stacking cards via the menu.
-4) <u>Viewing a private area:</u>
-Right click on a brown area and click <b>Toggle View</b> to see cards in that area. 
-</font>
-]]>
-					</mx:htmlText>
-			</mx:TextArea>
+	
+	<mx:Canvas>
+		<TTConsoleNS:TTUIComponent id="ttcomponent" x="0" y="0" alpha=".8" visible="false" />
+		
+		<mx:HBox x="0" y="0" verticalAlign="bottom">
 			
-		</mx:VBox>
-		<!--
-		<mx:VBox>
-			<mx:TextArea id="commlog"></mx:TextArea>
-			<mx:Button id="printlog" label="x" click="printLog()"></mx:Button>
-		</mx:VBox>
-		-->
-	</mx:HBox>
+			<mx:VBox id="ttvBox">
+				<mx:Box id="ttBox" autoLayout="false" width="820" height="820" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+					<engine:TT id="tt" width="800" height = "800">
+					</engine:TT>
+				</mx:Box>
+				
+			</mx:VBox>
+			
+			<mx:VBox id="dealerBox" >
+				<mx:TextArea 
+					id="sideconsole"
+					width="300" height="750" styleName="sideConsole" valueCommit="sideconsole.verticalScrollPosition = sideconsole.maxVerticalScrollPosition">
+						<mx:htmlText>
+							<![CDATA[<font size="12"><b>Server Instructions:</b></font>
+	<font size="10">1) Type a <u>UserId</u> (no Password or Server necessary for demo)
+	2) Choose a color for your cursor
+	3) Click <b>Start Server</b>
+
+	<font size="12"><b>Client Instructions:</b></font>
+	<font size="10">0) Must be on the same Local Network. This demo only supports connections over the local area network.
+	1) Type a <u>UserId</u> (no Password or Server necessary for demo)
+	2) Choose a color for your cursor
+	3) Type in the same <b>Gameroom</b> as the <u>Server</u>
+	4) Type in the <b>UserId</b> of the <u>Server</u>
+	5) Click <u>Connect to Server</u>  
+
+	<font size="12"><b>To Play</b></font><font size="10">
+	1) Double-click to flip a card. Also, press "F" or use the menu to flip all cards up or down.
+	2) Press "R" to rotate a card. (This is an incomplete feature: edge-detection behaves as if the card was not rotated).
+	3) Right - click for menu. 
+	 a) It matters where you right - mouse clicked. That is where cards will go if you shuffle or view an area.
+	 b) The order of cards by X, then Y position is preserved when spreading/stacking cards via the menu.
+	4) <u>Viewing a private area:</u>
+	Right click on a brown area and click <b>Toggle View</b> to see cards in that area. 
+	</font>
+	]]>
+						</mx:htmlText>
+				</mx:TextArea>
+				
+			</mx:VBox>
+		</mx:HBox>
+	</mx:Canvas>
 	<mx:HBox id="playmenu">
 		<!--mx:Button id="menu_flip" label="Flip" click="menuFlip()" /-->
 		<!--mx:Button id="menu_shuffle" label="Shuffle" click="menuShuffle()" /--> 
 		<mx:Button id="menu_dealer" label="Activate Bet Tracker and Community Zone" click="menuDealer()" enabled="false" />
 		<mx:Button id="menu_rotate_all" label="Rotate Board" click="rotateAll()"/>
+		<mx:Button id="toggle_console" label="Toggle Console" click="toggleConsole()" />
 	</mx:HBox>
-
-	<TTConsoleNS:TTUIComponent autoLayout = "true" id="ttcomponent" visible="false" />
 	<mx:Label id="statusbar" />
 	</mx:Application>
 	

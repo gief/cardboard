@@ -8,6 +8,7 @@
 	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
+	import flash.utils.Dictionary;
 	import mx.containers.Canvas;
 	import flash.events.MouseEvent;
 	import communicator.TTComm;
@@ -60,6 +61,7 @@
 		public function TT() 
 		{
 			super();
+			this.comm = new TTComm();
 			
 			this.card_mover = new TTCardMover;
 			TTCardMover.mover = this.card_mover;
@@ -164,6 +166,7 @@
 			global_text_format.kerning = -9; 
 			global_text_format.color = 0x000;
 			global_text_format.font = "PT Sans Caption";
+			
 		}
 		
 
@@ -181,6 +184,7 @@
 			visual_effect_layer.reloadPermenaRegistration(comm.about_all_players);
 			
 			this.stage.frameRate = 60;
+			
 		}
 		
 		/**
@@ -189,6 +193,24 @@
 		 */
 		public function generateGameId():String {
 			return SHA1.hash(new Date().toUTCString() + Math.random().toString()).substr(0,2);
+		}
+		
+		public var lastGeneratedCardId:int = 0;
+		/**
+		 * Generate a card ID
+		 * @return an integer for use for a new card_id
+		 */
+		public function generateCardId():int {
+			var found:Boolean = false;
+			for each (var area:TTArea in areas) {
+				found = found || area.cards[lastGeneratedCardId];
+			}
+			if (found) { 
+				lastGeneratedCardId += 1;
+				return generateCardId();
+			} else {
+				return lastGeneratedCardId;
+			}
 		}
 		
 		/**
@@ -443,6 +465,23 @@
 		public function onKeyUp(evt:KeyboardEvent):void {
 			TT.ctrlDown = evt.ctrlKey;
 			TT.shiftDown = evt.shiftKey;
+			if (evt.keyCode == 192) { // tilde ~ for SuperConsole
+				this.toggleConsole();
+			} else if (evt.keyCode == 32 || evt.keyCode == 70) {
+				selectedCards.flipCards();
+			} else if (evt.keyCode == 82 && !selectedCards.readyToDrag && !selectedCards.isDragging) {
+				selectedCards.rotateCards();
+			}
+		}
+		
+		public function toggleConsole():void {
+			var console_component:TTUIComponent = FlexGlobals.topLevelApplication.ttcomponent;
+			console_component.visible = !console_component.visible;
+			if (visible) {
+				console_component.parent.addChild(console_component);
+				stage.focus = console_component.consoleinput;
+				console_component.consoleinput.text = "";
+			}
 		}
 		
 		/**
@@ -455,13 +494,6 @@
 			TT.ctrlDown = evt.ctrlKey;
 			TT.shiftDown = evt.shiftKey;
 			var selectedCards:TTCardContainer = FlexGlobals.topLevelApplication.tt.selectedCards;
-			if (evt.keyCode == 192) { // tilde
-				FlexGlobals.topLevelApplication.ttcomponent.visible = !mx.core.FlexGlobals.topLevelApplication.ttcomponent.visible;
-			} else if (evt.keyCode == 32 || evt.keyCode == 70) {
-				selectedCards.flipCards();
-			} else if (evt.keyCode == 82 && !selectedCards.readyToDrag && !selectedCards.isDragging) {
-				selectedCards.rotateCards();
-			}
 		}
 		
 		/**
@@ -505,8 +537,6 @@
 			if (this.visual_effect_layer) {
 				this.visual_effect_layer.unpauseTracking();
 			}
-			
-			// stage.focus = FlexGlobals.topLevelApplication.tt;
 		}
 		
 		
@@ -625,20 +655,6 @@
 		}
 		
 		/**
-		 * Drops areas and cards from this game.
-		 */
-		public function dropAreasAndCards():void {
-			for each (var area:TTArea in this.areas) {
-				for each (var card:TTCard in area.cards) {
-					area.removeCard(card);
-					area.removeChild(card);
-				}
-				this.removeChild(area);
-			}
-			this.areas = new Array();
-		}
-		
-		/**
 		 * Loads a game's metadata (will overwrite an existing game with the new metadata)
 		 * @see initAfterLoadedGame
 		 * @param	json_encoded_game
@@ -724,21 +740,24 @@
 					ttCard.processRotatedCard(card.r);
 					ttCard.processMovedCard(card.x, card.y, card.area_id);
 				}  else {
-					ttCard = new TTCard();
-					ttCard.back = card.back;
-					ttCard.front = card.front;
+					trace("new card");
+					ttCard = new TTCard(card.front, card.back, card.card_id, false, false, (card.w > 0 ? card.w : 50), (card.h > 0 ? card.h : 70));
+					//ttCard.back = card.back;
+					//ttCard.front = card.front;
 					ttCard.rotation = card.r;
 					ttCard.x = card.x;
 					ttCard.y = card.y;
 					ttCard.face_up = card.face_up;
 					ttCard.data = card.data;
-					ttCard.card_id = card.card_id;
+					//ttCard.card_id = card.card_id;
 					ttCard.isChip = card.isChip;
 					ttCard.chipColor = card.chipColor; 
+					/*
 					ttCard.w = (card.w ? card.w : ttCard.w ); // default width
 					ttCard.halfw = (card.halfw ? card.halfw : ttCard.halfw );
 					ttCard.h = (card.h ? card.h : ttCard.h );
 					ttCard.halfh = (card.halfh ? card.halfh : ttCard.halfh) ;
+					*/
 					if ( card.area_id != null ) {
 						for (var i:int = 0; i < this.areas.length; i += 1 ) {
 							//trace("check: " + this.areas[i].area_id + " cid:" + card.area_id);
@@ -763,6 +782,26 @@
 					ttCard = ttArea.cards[card.id];
 				}
 			}
+		}
+		
+		public function sendDeleteAllCardsMessage():void {
+			var message:Object = new Object();
+			message.person_id = FlexGlobals.topLevelApplication.tt.myself_id;
+			message.action = "DELETEALLCARDS";
+			var now:Date = new Date();
+			message.timestamp = "" + new Date().valueOf();
+			FlexGlobals.topLevelApplication.tt.comm.send(message);
+		}
+		
+		
+		public function deleteAllCards():void {
+			for each (var area:TTArea in this.areas) {
+				for each (var card:TTCard in area.cards) {
+					area.removeCard(card);
+				}
+				//area.cards = new Dictionary();
+			}
+			
 		}
 		
 		/**
