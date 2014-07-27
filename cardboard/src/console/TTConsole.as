@@ -119,7 +119,8 @@
 				consolescreen.text += "\nNo game yet, cannot load cards\n";
 				return; 
 			}
-			if (arguments[0].substring(0, 4) == "http") {
+			if (arguments[0].substring(0, 4) == "http" ||
+				arguments[0].substring(0, 4) == "file") {
 				consolescreen.text += "\nLoading:" +arguments[0]+"\n";
 				var url:URLRequest = new URLRequest(arguments[0]);
 				var loaderContext:LoaderContext = new LoaderContext(true);
